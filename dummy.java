@@ -1,5 +1,6 @@
 package org.owasp.webgoat.lessons.sqlinjection.introduction;
 
+import java.sql.PreparedStatement;
 import org.owasp.webgoat.container.LessonDataSource;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AttackResult;
@@ -30,12 +31,12 @@ public class SqlInjectionLesson10 extends AssignmentEndpoint {
 
     protected AttackResult injectableQueryAvailability(String action) {
         StringBuilder output = new StringBuilder();
-        String query = "SELECT * FROM access_log WHERE action LIKE '%" + action + "%'";
-
-        try (Connection connection = dataSource.getConnection()) {
-            try {
-                Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                ResultSet results = statement.executeQuery(query);
+          String query = "SELECT * FROM access_log WHERE action LIKE ?";
+          try (Connection connection = dataSource.getConnection()) {
+              try {
+                  PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                  preparedStatement.setString(1, "%" + action + "%");
+                  ResultSet results = preparedStatement.executeQuery();
 
                 if (results.getStatement() != null) {
                     results.first();
